@@ -41,7 +41,7 @@ revisions = [0] + [int(2**i) for i in range(0, 10)]  + list(range(1000, 143000, 
 for model_size in model_size_list:
     model_name = f'EleutherAI/pythia-{model_size}'
     for revision in revisions:
-        if not os.path.exists(os.path.join(save_path_tmp, revision)):
+        if not os.path.exists(os.path.join(save_path_tmp, f'{revision}.dat')):
             cache_dir = os.path.join(f"./model_cache/{model_name}/{revision}")
             model = AutoModelForCausalLM.from_pretrained(model_name,revision=f"step{revision}",cache_dir=cache_dir).to(device)
             model_config = model.config
@@ -49,3 +49,18 @@ for model_size in model_size_list:
             result = exploit_data(model, tokenizer, model.config)
             save_data(result, os.path.join(save_path_tmp, revision))
 
+## instruct
+models = ['meta-llama/Llama-2-7b-hf', 'meta-llama/Llama-2-7b-chat-hf',
+          'meta-llama/Llama-2-13b-hf', 'meta-llama/Llama-2-13b-chat-hf',
+          'Qwen/Qwen2-7B' , 'Qwen/Qwen2-7B-Instruct',
+          'Qwen/Qwen-14B', 'Qwen/Qwen-14B-Chat']
+save_path_tmp = save_path
+for model_name in models:
+    p = model_name.split('/')[1]
+    if not os.path.exists(os.path.join(save_path_tmp, f'{p}.dat')):
+        cache_dir = os.path.join(f"./model_cache/{model_name}")
+        model = AutoModelForCausalLM.from_pretrained(model_name,revision=f"step{revision}",cache_dir=cache_dir).to(device)
+        model_config = model.config
+        tokenizer = AutoTokenizer.from_pretrained(model_name,revision=f"step{revision}",cache_dir=cache_dir)
+        result = exploit_data(model, tokenizer, model.config)
+        save_data(result, os.path.join(save_path_tmp, revision))
