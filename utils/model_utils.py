@@ -35,7 +35,7 @@ def load_model(model_name: str, device='cuda', cache_dir='', low_cpu_mem_usage=F
                         "n_layers": model.config.num_hidden_layers,
                         "resid_dim": model.config.hidden_size,
                         "name_or_path": model.config.name_or_path,
-                        'result_dir':'phi_2',
+                        'result_dir':'pythia',
                         "k_names": [f'model.layers.{layer}.self_attn.k_proj' for layer in
                                             range(model.config.num_hidden_layers)] ,          
                         "v_names": [f'model.layers.{layer}.self_attn.v_proj' for layer in

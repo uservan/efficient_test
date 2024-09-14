@@ -1,7 +1,7 @@
 import yaml
 import sys
 import os
-sys.path.append(os.path.join(sys.path[0], '../'))
+# sys.path.append(os.path.join(sys.path[0], '../'))
 import pickle
 import torch 
 import numpy as np
@@ -46,11 +46,28 @@ device = 'cuda:0'
 save_path = os.path.join(sys.path[0], './results/')
 if not os.path.exists(save_path): os.makedirs(save_path)
 
+## pythia
+save_path_tmp = os.path.join(save_path, 'pythia')
+if not os.path.exists(save_path_tmp): os.makedirs(save_path_tmp)
+model_size_list = ['70m', '160m','410m','1b','1.4b', '2.8b','6.9b'] 
+revisions = [0] + [int(2**i) for i in range(0, 10)]  + list(range(1000, 143000, 5000))
+for model_size in model_size_list:
+    model_name = f'EleutherAI/pythia-{model_size}'
+    for revision in revisions:
+        if not os.path.exists(os.path.join(save_path_tmp,model_size, f'{revision}.dat')):
+            if not os.path.exists(os.path.join(save_path_tmp,model_size)):  
+                os.makedirs(os.path.join(save_path_tmp,model_size))
+            cache_dir = os.path.join(f"./model_cache/{model_name}/{revision}")
+            model, tokenizer, model_config = load_model(model_name, device, cache_dir=cache_dir)
+            result = exploit_data(model, tokenizer, model.config)
+            path = os.path.join(save_path_tmp,model_size,f'{revision}.dat')
+            save_data(result, path)
+
 ## instruct
-models = ['Qwen/Qwen-7B', 'meta-llama/Llama-2-7b-hf', 'meta-llama/Llama-2-7b-chat-hf',
+models = ['Qwen/Qwen2-1.5B', 'meta-llama/Llama-2-7b-hf', 'meta-llama/Llama-2-7b-chat-hf',
           'meta-llama/Llama-2-13b-hf', 'meta-llama/Llama-2-13b-chat-hf',
-          'Qwen/Qwen-7B' , 'Qwen/Qwen-7B-Instruct',
-          'Qwen/Qwen-14B', 'Qwen/Qwen-14B-Chat']
+          'Qwen/Qwen2-7B' , 'Qwen/Qwen2-7B-Instruct',
+          'Qwen/Qwen2-1.5B', 'Qwen/Qwen2-1.5B-Instruct']
 save_path_tmp = save_path
 for model_name in models:
     p = model_name.split('/')[1]
@@ -59,19 +76,5 @@ for model_name in models:
         model, tokenizer, model_config = load_model(model_name, device, cache_dir=cache_dir)
         result = exploit_data(model, tokenizer, model_config)
         save_data(result, os.path.join(save_path_tmp, f'{p}.dat'))
-
-## pythia
-save_path_tmp = os.path.join(save_path, 'pythia')
-if not os.path.exists(save_path_tmp): os.makedirs(save_path_tmp)
-model_size_list = ['70m', '160m','410m','1b','1.4b', '2.8b','6.9b'] 
-revisions = [0] + [int(2**i) for i in range(0, 10)]  + list(range(1000, 143000, 1000))
-for model_size in model_size_list:
-    model_name = f'EleutherAI/pythia-{model_size}'
-    for revision in revisions:
-        if not os.path.exists(os.path.join(save_path_tmp, f'{revision}.dat')):
-            cache_dir = os.path.join(f"./model_cache/{model_name}/{revision}")
-            model, tokenizer, model_config = load_model(model_name, device, cache_dir=cache_dir)
-            result = exploit_data(model, tokenizer, model.config)
-            save_data(result, os.path.join(save_path_tmp, f'{revision}.dat'))
 
 
