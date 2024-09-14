@@ -47,9 +47,9 @@ save_path = os.path.join(sys.path[0], './results/')
 if not os.path.exists(save_path): os.makedirs(save_path)
 
 ## instruct
-models = ['Qwen/Qwen2-7B', 'meta-llama/Llama-2-7b-hf', 'meta-llama/Llama-2-7b-chat-hf',
+models = ['Qwen/Qwen-7B', 'meta-llama/Llama-2-7b-hf', 'meta-llama/Llama-2-7b-chat-hf',
           'meta-llama/Llama-2-13b-hf', 'meta-llama/Llama-2-13b-chat-hf',
-          'Qwen/Qwen2-7B' , 'Qwen/Qwen2-7B-Instruct',
+          'Qwen/Qwen-7B' , 'Qwen/Qwen-7B-Instruct',
           'Qwen/Qwen-14B', 'Qwen/Qwen-14B-Chat']
 save_path_tmp = save_path
 for model_name in models:
