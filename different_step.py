@@ -46,6 +46,20 @@ device = 'cuda:0'
 save_path = os.path.join(sys.path[0], './results/')
 if not os.path.exists(save_path): os.makedirs(save_path)
 
+## instruct
+models = ['Qwen/Qwen2-1.5B', 'meta-llama/Llama-2-7b-hf', 'meta-llama/Llama-2-7b-chat-hf',
+          'meta-llama/Llama-2-13b-hf', 'meta-llama/Llama-2-13b-chat-hf',
+          'Qwen/Qwen2-7B' , 'Qwen/Qwen2-7B-Instruct',
+          'Qwen/Qwen2-1.5B', 'Qwen/Qwen2-1.5B-Instruct']
+save_path_tmp = save_path
+for model_name in models:
+    p = model_name.split('/')[1]
+    if not os.path.exists(os.path.join(save_path_tmp, f'{p}.dat')):
+        cache_dir = os.path.join(f"./model_cache/{p}")
+        model, tokenizer, model_config = load_model(model_name, device, cache_dir=cache_dir)
+        result = exploit_data(model, tokenizer, model_config)
+        save_data(result, os.path.join(save_path_tmp, f'{p}.dat'))
+
 ## pythia
 save_path_tmp = os.path.join(save_path, 'pythia')
 if not os.path.exists(save_path_tmp): os.makedirs(save_path_tmp)
@@ -62,19 +76,5 @@ for model_size in model_size_list:
             result = exploit_data(model, tokenizer, model.config)
             path = os.path.join(save_path_tmp,model_size,f'{revision}.dat')
             save_data(result, path)
-
-## instruct
-models = ['Qwen/Qwen2-1.5B', 'meta-llama/Llama-2-7b-hf', 'meta-llama/Llama-2-7b-chat-hf',
-          'meta-llama/Llama-2-13b-hf', 'meta-llama/Llama-2-13b-chat-hf',
-          'Qwen/Qwen2-7B' , 'Qwen/Qwen2-7B-Instruct',
-          'Qwen/Qwen2-1.5B', 'Qwen/Qwen2-1.5B-Instruct']
-save_path_tmp = save_path
-for model_name in models:
-    p = model_name.split('/')[1]
-    if not os.path.exists(os.path.join(save_path_tmp, f'{p}.dat')):
-        cache_dir = os.path.join(f"./model_cache/{p}")
-        model, tokenizer, model_config = load_model(model_name, device, cache_dir=cache_dir)
-        result = exploit_data(model, tokenizer, model_config)
-        save_data(result, os.path.join(save_path_tmp, f'{p}.dat'))
 
 
