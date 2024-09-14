@@ -3,7 +3,7 @@ import torch
 import numpy as np
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-def load_model(model_name: str, device='cuda', cache_dir='', low_cpu_mem_usage=False, show_params=True):
+def load_model(model_name: str, device='cuda', cache_dir='', low_cpu_mem_usage=False, show_params=False):
 
     model = AutoModelForCausalLM.from_pretrained(model_name, low_cpu_mem_usage=low_cpu_mem_usage, 
                                                  token='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',
