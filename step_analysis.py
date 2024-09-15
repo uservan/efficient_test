@@ -11,6 +11,8 @@ import pickle
 import torch 
 import numpy as np
 from utils.model_utils import load_model
+# import umap
+import umap.umap_ as umap
 
 class step_info:
     def __init__(self,hidden_states,key,values,ground_attentions) -> None:
@@ -25,13 +27,45 @@ def load_data(save_path):
         data = pickle.load(f)
         return data
 
+def cosine_similarity(a, b):
+    dot_product =np.diagonal(np.dot(a, b.T)).reshape(-1,1)
+    norm_a = np.linalg.norm(a, axis=-1).reshape(-1,1)
+    norm_b = np.linalg.norm(b, axis=-1).reshape(-1,1)
+    similarity = dot_product / (norm_a * norm_b)
+    return similarity
+
+def BI_score(a, b):
+    similarity = cosine_similarity(a, b)
+    return 1-similarity
+
+def cosine_similarity_matrix(a, b):
+    dot_product = np.dot(a, b.T)
+    norm_a = np.linalg.norm(a, axis=-1).reshape(-1,1)
+    norm_b = np.linalg.norm(b, axis=-1).reshape(-1,1)
+    similarity = dot_product / (np.dot(norm_a, norm_b.T))
+    return similarity
+
+def get_umap(activations, dim=2):
+    old_shape = activations.shape
+    embedding = umap.UMAP(n_components = dim).fit_transform(activations.reshape(-1, old_shape[-1]))
+    embedding = embedding.reshape(old_shape[:-1]+(dim,))
+    return embedding
+
+def get_matrix_info(matrix):
+    det = np.linalg.det(matrix)
+    eigenvalues, eigenvectors = np.linalg.eig(matrix)
+    rank = np.linalg.matrix_rank(matrix)
+    U, S, Vt = np.linalg.svd(matrix)
+    is_projection = np.allclose(np.dot(matrix, matrix), matrix)
+    return det, eigenvalues, rank,  S,  is_projection
+    
 save_path = os.path.join('./results/')
 if not os.path.exists(save_path): os.makedirs(save_path)
 
 # pythia
 save_path_tmp = os.path.join(save_path, 'pythia')
 if not os.path.exists(save_path_tmp): os.makedirs(save_path_tmp)
-model_size_list = ['70m','1.4b', '160m','410m','1b','2.8b' ]  # ,'6.9b'
+model_size_list = ['1b', '70m','410m', '1.4b', '160m','2.8b' ]  # ,'6.9b'
 revisions = [0] + [int(2**i) for i in range(0, 10)]  + list(range(1000, 143000, 5000))
 for model_size in model_size_list:
     model_name = f'EleutherAI/pythia-{model_size}'
@@ -39,10 +73,39 @@ for model_size in model_size_list:
         if os.path.exists(os.path.join(save_path_tmp,model_size, f'{revision}.dat')):
             data = load_data(os.path.join(save_path_tmp,model_size, f'{revision}.dat'))
             print(data['short'].hidden_states.shape)
+            keys = data['long'].key
+
+            original_keys = np.transpose(keys,(0,2,1,3)).reshape(keys.shape[0],keys.shape[2], -1)
+            umap_keys = get_umap(original_keys.reshape(-1, original_keys.shape[-1]), 2) \
+                                .reshape(original_keys.shape[0],original_keys.shape[1],-1)
+
+            key_list = []
+            for layer in range(keys.shape[0]):
+                key_simi_list = []
+                for head in range(keys.shape[1]):
+                    key_simi = cosine_similarity_matrix(keys[layer, head], keys[layer, head])
+                    key_simi_list.append(key_simi.reshape(-1, key_simi.shape[0], key_simi.shape[1]))
+                key_simi_list = np.concatenate(key_simi_list, axis=0)
+                key_list.append(key_simi_list.reshape([-1]+list(key_simi_list.shape)))
+            key_list = np.concatenate(key_list, axis=0)
+            print(key_list)
+
+            hidden_state = data['long'].hidden_states
+            bi_scores = []
+            for layer_id in range(hidden_state.shape[0]-1):
+                bi_scores.append(BI_score(hidden_state[layer_id], hidden_state[layer_id+1]))
+            bi_scores = np.concatenate(bi_scores, axis=-1)
+            bi_scores = np.mean(bi_scores, axis=0)
+            print(model_name, revision, bi_scores)
+
             attn_sink = data['short'].ground_attentions[:,:,-1]
             attn_sink_mean = np.mean(attn_sink.reshape(-1, attn_sink.shape[-1]), axis=0)
             attn_sink_percent = attn_sink_mean[0] / np.sum(attn_sink_mean)
             print(model_name, revision, attn_sink_percent)
+
+            
+
+
 
 ## instruct
 models = ['meta-llama/Llama-2-7b-hf', 'meta-llama/Llama-2-7b-chat-hf',
