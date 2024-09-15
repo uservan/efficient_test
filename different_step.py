@@ -35,7 +35,7 @@ def exploit_data(model,tokenizer,model_config):
         values = torch.cat([k[1] for k in output_and_cache.past_key_values], dim=0).detach().cpu().numpy()
         ground_attentions = torch.cat(output_and_cache.attentions, dim=0).detach().cpu().numpy()
         data2 = step_info(hidden_states, key,values,ground_attentions)
-        return {'long': data, 'short':data2}
+        return {'long': data2, 'short':data}
 
 
 def save_data(data, save_path):
@@ -72,7 +72,7 @@ for model_size in model_size_list:
             if not os.path.exists(os.path.join(save_path_tmp,model_size)):  
                 os.makedirs(os.path.join(save_path_tmp,model_size))
             cache_dir = os.path.join(f"./model_cache/{model_name}/{revision}")
-            model, tokenizer, model_config = load_model(model_name, device, cache_dir=cache_dir)
+            model, tokenizer, model_config = load_model(model_name, device, cache_dir=cache_dir, revision=revision)
             result = exploit_data(model, tokenizer, model.config)
             path = os.path.join(save_path_tmp,model_size,f'{revision}.dat')
             save_data(result, path)

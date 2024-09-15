@@ -3,18 +3,22 @@ import torch
 import numpy as np
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-def load_model(model_name: str, device='cuda', cache_dir='', low_cpu_mem_usage=False, show_params=False):
+def load_model(model_name: str, device='cuda', cache_dir='', low_cpu_mem_usage=False, show_params=False,revision=None):
 
-    model = AutoModelForCausalLM.from_pretrained(model_name, low_cpu_mem_usage=low_cpu_mem_usage, 
+    if model_name.find('pythia') != -1:
+        model = AutoModelForCausalLM.from_pretrained(model_name, low_cpu_mem_usage=low_cpu_mem_usage, 
+                                                 token='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',revision=f"step{revision}",
+                                                 cache_dir=cache_dir).to(device)
+        tokenizer = AutoTokenizer.from_pretrained(model_name, revision=f"step{revision}", token='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')
+    else:
+        model = AutoModelForCausalLM.from_pretrained(model_name, low_cpu_mem_usage=low_cpu_mem_usage, 
                                                  token='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',
                                                  cache_dir=cache_dir).to(device)
+        tokenizer = AutoTokenizer.from_pretrained(model_name,token='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')
+    
     device, dtype = model.device, model.dtype
-
     model_modules = dict(model.named_modules())
-
-    tokenizer = AutoTokenizer.from_pretrained(model_name,token='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')
     tokenizer.pad_token = tokenizer.eos_token
-  
     MODEL_CONFIG = model.config
 
     if model_name.find('qiwen') !=-1:
