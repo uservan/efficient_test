@@ -25,22 +25,42 @@ if __name__ == '__main__':
     if not os.path.exists(save_path): os.makedirs(save_path)
 
     ## instruct
-    models = ['meta-llama/Llama-2-7b-hf', 'meta-llama/Llama-2-7b-chat-hf',
+    models = [ 'meta-llama/Llama-2-7b-chat-hf','meta-llama/Llama-2-7b-hf',
                 # 'Qwen/Qwen2-7B' , 'Qwen/Qwen2-7B-Instruct',
                 # 'Qwen/Qwen2-1.5B', 'Qwen/Qwen2-1.5B-Instruct',
                 # 'Qwen/Qwen2-1.5B',
                 # 'meta-llama/Llama-2-13b-hf', 'meta-llama/Llama-2-13b-chat-hf'
                 ]
+    # save_path_tmp = save_path
+    # for model_name in models:
+    #     p = model_name.split('/')[1]
+    #     path = os.path.join(save_path_tmp, 'param', f'{p}.dat')
+    #     if not os.path.exists(path): 
+    #         if not os.path.exists(os.path.dirname(path)): 
+    #             os.makedirs(os.path.dirname(path))
+    #         param_info = defaultdict(list)
+    #         cache_dir = os.path.join(f"./model_cache/{p}")
+    #         model, tokenizer, model_config = load_model(model_name, device, cache_dir=cache_dir)
+    #         model_modules = dict(model.named_modules())
+    #         for layer_k in model_config['k_names']:
+    #             if layer_k not in param_info:
+    #                 param = model_modules[layer_k].weight.clone().detach().cpu().numpy()
+    #                 det, eigenvalues, rank,  S,  is_projection = get_matrix_info(param)
+    #                 # print(det, eigenvalues, rank, S, is_projection)
+    #                 param_info[layer_k] = [det, eigenvalues, rank,  S,  is_projection]
+    #                 with open(path, 'wb') as f:
+    #                     pickle.dump(param_info, f)
+    #     else:
+    #         with open(path, 'rb') as f:
+    #             param_info = pickle.load(f)
+    
     save_path_tmp = save_path
-    for model_name in models:
-        p = model_name.split('/')[1]
-        cache_dir = os.path.join(f"./model_cache/{p}")
-        model, tokenizer, model_config = load_model(model_name, device, cache_dir=cache_dir)
-        model_modules = dict(model.named_modules())
-        for layer_k in model_config['k_names']:
-            param = model_modules[layer_k].weight.clone().detach().cpu().numpy()
-            det, eigenvalues, rank,  S,  is_projection = get_matrix_info(param)
-            print(det, eigenvalues, rank, S, is_projection)
+    p = 'Llama-2-7b-chat-hf'
+    path = os.path.join(save_path_tmp, 'param', f'{p}.dat')
+    with open(path, 'rb') as f:
+        param_info = pickle.load(f)
+    for param in param_info.keys():
+        print(param, param_info[param][2], np.sum(np.array(param_info[param][3])>=1))
 
     # ## pythia
     # revisions = [0] + [int(2**i) for i in range(0, 10)]  +  list(range(1000, 5001, 1000)) +list(range(5000, 143000, 5000))
