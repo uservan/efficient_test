@@ -40,24 +40,8 @@ def load_model(model_name: str, device='cuda', cache_dir='', low_cpu_mem_usage=F
                         "resid_dim": model.config.hidden_size,
                         "name_or_path": model.config.name_or_path,
                         'result_dir':'pythia',
-                        "k_names": [f'model.layers.{layer}.self_attn.k_proj' for layer in
-                                            range(model.config.num_hidden_layers)] ,          
-                        "v_names": [f'model.layers.{layer}.self_attn.v_proj' for layer in
-                                            range(model.config.num_hidden_layers)] ,
-                        "q_names": [f'model.layers.{layer}.self_attn.q_proj' for layer in
-                                            range(model.config.num_hidden_layers)] ,
-                        "k_q_names": [f'model.layers.{layer}.self_attn.k_proj' for layer in
-                                            range(model.config.num_hidden_layers)] + 
-                                    [f'model.layers.{layer}.self_attn.q_proj' for layer in
-                                            range(model.config.num_hidden_layers)] ,
-                        "out_proj": [f'model.layers.{layer}.self_attn.dense' for layer in
-                                            range(model.config.num_hidden_layers)],
-                        "fc_in": [f'model.layers.{layer}.mlp.fc1' for layer in
-                                            range(model.config.num_hidden_layers)],
-                        "fc_out": [f'model.layers.{layer}.mlp.fc2' for layer in
-                                            range(model.config.num_hidden_layers)],
-                        "blocks": [f'model.layers.{layer}' for layer in
-                                            range(model.config.num_hidden_layers)],
+                        "k_names": [f'gpt_neox.layers.{layer}.attention.query_key_value' for layer in
+                                            range(model.config.num_hidden_layers)] , 
                         }
 
     if model_name.find('phi-2') != -1:
