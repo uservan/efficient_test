@@ -54,13 +54,6 @@ if __name__ == '__main__':
     #         with open(path, 'rb') as f:
     #             param_info = pickle.load(f)
     
-    save_path_tmp = save_path
-    p = 'Llama-2-7b-chat-hf'
-    path = os.path.join(save_path_tmp, 'param', f'{p}.dat')
-    with open(path, 'rb') as f:
-        param_info = pickle.load(f)
-    for param in param_info.keys():
-        print(param, param_info[param][2], np.sum(np.array(param_info[param][3])>=1))
 
     # ## pythia
     # revisions = [0] + [int(2**i) for i in range(0, 10)]  +  list(range(1000, 5001, 1000)) +list(range(5000, 143000, 5000))
