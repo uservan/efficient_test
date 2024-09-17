@@ -22,3 +22,4 @@ result_old/
 task/__pycache__
 utils/__pycache__
 output/
+__pycache__/
