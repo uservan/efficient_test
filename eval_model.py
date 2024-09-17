@@ -44,6 +44,6 @@ if __name__ == '__main__':
             os.makedirs(os.path.dirname(path))
         cache_dir = os.path.join(f"./model_cache/{p}")
         model, tokenizer, model_config = load_model(model_name, device, cache_dir=cache_dir)
-        result = lm_evaluate(model=model, batch_size=64)
+        result = lm_evaluate(model=model, batch_size=128)
         with open(path, 'rb') as f:
             pickle.dump(result, f)
