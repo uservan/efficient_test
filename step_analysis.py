@@ -55,29 +55,29 @@ if __name__ == '__main__':
     save_path = os.path.join('./results/')
     if not os.path.exists(save_path): os.makedirs(save_path)
 
-    # pythia 
-    save_path_tmp = os.path.join(save_path, 'pythia')
-    if not os.path.exists(save_path_tmp): os.makedirs(save_path_tmp)
-    model_size_list = ['1b', '70m','410m', '1.4b', '160m','2.8b' ]  # ,'6.9b'
-    revisions = [0] + [int(2**i) for i in range(0, 10)]  + list(range(1000, 143000, 5000))
-    for model_size in model_size_list:
-        model_name = f'EleutherAI/pythia-{model_size}'
-        for revision in revisions:
-            if os.path.exists(os.path.join(save_path_tmp,model_size, f'{revision}.dat')):
-                data = load_data(os.path.join(save_path_tmp,model_size, f'{revision}.dat'))
-                keys = data['long'].key
-                key_list = []
-                for layer in range(keys.shape[0]):
-                    key_simi_list = []
-                    for head in range(keys.shape[1]):
-                        key_simi = cosine_similarity_matrix(keys[layer, head], keys[layer, head])
-                        key_simi_list.append(key_simi.reshape(-1, key_simi.shape[0], key_simi.shape[1]))
-                    key_simi_list = np.concatenate(key_simi_list, axis=0)
-                    key_list.append(key_simi_list.reshape([-1]+list(key_simi_list.shape)))
-                key_list = np.concatenate(key_list, axis=0)
-                print(key_list)
-            else:
-                print(f'No data for {model_name}, {revision}')
+    # # pythia 
+    # save_path_tmp = os.path.join(save_path, 'pythia')
+    # if not os.path.exists(save_path_tmp): os.makedirs(save_path_tmp)
+    # model_size_list = ['1b', '70m','410m', '1.4b', '160m','2.8b' ]  # ,'6.9b'
+    # revisions = [0] + [int(2**i) for i in range(0, 10)]  + list(range(1000, 143000, 5000))
+    # for model_size in model_size_list:
+    #     model_name = f'EleutherAI/pythia-{model_size}'
+    #     for revision in revisions:
+    #         if os.path.exists(os.path.join(save_path_tmp,model_size, f'{revision}.dat')):
+    #             data = load_data(os.path.join(save_path_tmp,model_size, f'{revision}.dat'))
+    #             keys = data['long'].key
+    #             key_list = []
+    #             for layer in range(keys.shape[0]):
+    #                 key_simi_list = []
+    #                 for head in range(keys.shape[1]):
+    #                     key_simi = cosine_similarity_matrix(keys[layer, head], keys[layer, head])
+    #                     key_simi_list.append(key_simi.reshape(-1, key_simi.shape[0], key_simi.shape[1]))
+    #                 key_simi_list = np.concatenate(key_simi_list, axis=0)
+    #                 key_list.append(key_simi_list.reshape([-1]+list(key_simi_list.shape)))
+    #             key_list = np.concatenate(key_list, axis=0)
+    #             print(key_list)
+    #         else:
+    #             print(f'No data for {model_name}, {revision}')
                 
 
     ## instruct
@@ -90,5 +90,9 @@ if __name__ == '__main__':
         p = model_name.split('/')[1]
         if os.path.exists(os.path.join(save_path_tmp, f'{p}.dat')):
             data = load_data(os.path.join(save_path_tmp, f'{p}.dat'))
-            print(data['short'].hidden_states.shape)
+            attn = data['long'].ground_attentions
+            for layer_id in range(attn.shape[0]):
+                head_attn = attn[layer_id]
+                for head_id in range(head_attn.shape[0]-1):
+                    print(layer_id, head_id, np.linalg.norm(head_attn[head_id, -1] - head_attn[head_id+1, -1]))
 

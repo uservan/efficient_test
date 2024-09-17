@@ -25,7 +25,7 @@ def lm_evaluate(model, tasks=["mmlu"], batch_size=1, num_fewshot=0):
     return results
 
 if __name__ == '__main__':
-    device = 'cuda:0'
+    device = 'cpu' #'cuda:0'
     save_path = os.path.join(sys.path[0], './results/')
     if not os.path.exists(save_path): os.makedirs(save_path)
 
@@ -40,8 +40,10 @@ if __name__ == '__main__':
     for model_name in models:
         p = model_name.split('/')[1]
         path = os.path.join(save_path_tmp, 'eval', f'{p}.dat')
+        if not os.path.exists(os.path.dirname(path)): 
+            os.makedirs(os.path.dirname(path))
         cache_dir = os.path.join(f"./model_cache/{p}")
         model, tokenizer, model_config = load_model(model_name, device, cache_dir=cache_dir)
-        result = lm_evaluate(model=model, batch_size=8)
+        result = lm_evaluate(model=model, batch_size=64)
         with open(path, 'rb') as f:
             pickle.dump(result, f)
