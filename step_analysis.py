@@ -78,7 +78,6 @@ if __name__ == '__main__':
     #             print(key_list)
     #         else:
     #             print(f'No data for {model_name}, {revision}')
-                
 
     ## instruct
     models = ['meta-llama/Llama-2-7b-hf', 'meta-llama/Llama-2-7b-chat-hf',
@@ -94,5 +93,5 @@ if __name__ == '__main__':
             for layer_id in range(attn.shape[0]):
                 head_attn = attn[layer_id]
                 for head_id in range(head_attn.shape[0]-1):
-                    print(layer_id, head_id, np.linalg.norm(head_attn[head_id, -1] - head_attn[head_id+1, -1]))
+                    print(f'layer:{layer_id}', f'head:{head_id}', np.linalg.norm(head_attn[head_id, :] - head_attn[head_id+1, :]))
 
