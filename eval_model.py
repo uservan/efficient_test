@@ -6,9 +6,6 @@ import pickle
 import torch 
 import numpy as np
 from utils.model_utils import load_model
-# import umap
-import umap.umap_ as umap
-from collections import defaultdict
 
 def lm_evaluate(model, tasks=["mmlu"], batch_size=1, num_fewshot=0):
     lm = lm_eval.api.registry.get_model('hf').create_from_arg_obj({'pretrained': model})
@@ -26,12 +23,13 @@ def lm_evaluate(model, tasks=["mmlu"], batch_size=1, num_fewshot=0):
 def change_model(model, weight_names):
     model_modules = dict(model.named_modules())
     for layer_k in weight_names:
-        param = model_modules[layer_k].weight
+        param = model_modules[layer_k].weight.data
         U, S, Vh = torch.linalg.svd(param, full_matrices=False)
         S[S < 1] = 0
         S_matrix = torch.diag(S)
         param_reconstructed = torch.mm(U, torch.mm(S_matrix, Vh)).to(model.device)
         model_modules[layer_k].weight = torch.nn.Parameter(param_reconstructed)
+    return model
 
 if __name__ == '__main__':
     device = 'cuda:0'
@@ -39,10 +37,10 @@ if __name__ == '__main__':
     if not os.path.exists(save_path): os.makedirs(save_path)
 
     ## instruct
-    models = ['Qwen/Qwen2-1.5B', 'meta-llama/Llama-2-7b-chat-hf', # 'meta-llama/Llama-2-7b-hf',
+    models = ['meta-llama/Llama-2-7b-chat-hf', # 'meta-llama/Llama-2-7b-hf',
                 # 'Qwen/Qwen2-7B' , 'Qwen/Qwen2-7B-Instruct',
                 #  'Qwen/Qwen2-1.5B-Instruct',
-                # 
+                #  'Qwen/Qwen2-1.5B',
                 # 'meta-llama/Llama-2-13b-hf', 'meta-llama/Llama-2-13b-chat-hf'
                 ]
     save_path_tmp = save_path
